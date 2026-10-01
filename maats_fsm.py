@@ -59,7 +59,7 @@ class EnhancedFSM:
             N_conf:          Minimum consecutive valid detections to enter CANDIDATE.
             gap:             Number of tolerated consecutive missed frames in ACTIVE.
             cooldown_frames: Frames to wait after ACTIVE exit before re-entry.
-            min_event_length: Minimum ACTIVE duration to count as a valid event.
+            min_event_length: Duration threshold for counting short ACTIVE segments.
         """
         # Score parameters
         self.conf_threshold = conf_threshold
@@ -114,7 +114,7 @@ class EnhancedFSM:
             (trigger_signal: 0 or 1, current_state: 0-3)
         """
         # --- Step 1: Determine effective detection contribution ---
-        has_valid_det = effective_confidence > 0.0
+        has_valid_det = effective_confidence > 0.0 and effective_confidence >= self.conf_threshold
 
         if has_valid_det:
             conf_increment = self.conf_weight * effective_confidence
@@ -281,8 +281,9 @@ def run_enhanced_fsm_on_sequence(
     Run the enhanced FSM on a per-frame detection sequence.
 
     Args:
-        detections: List of per-frame dicts with at least 'has_detection' (bool)
-                    and optionally a 'confidence' (float 0-1) key.
+        detections: List of per-frame dicts with 'has_detection' (bool)
+                    and the maximum raw bird 'confidence' (float 0-1) when
+                    a detection is present.
         conf_key: Key for confidence value in detection dicts.
         **fsm_kwargs: Passed to EnhancedFSM constructor.
 
@@ -292,7 +293,9 @@ def run_enhanced_fsm_on_sequence(
     fsm = EnhancedFSM(**fsm_kwargs)
     for det in detections:
         if det.get("has_detection", False):
-            conf = det.get(conf_key, 1.0)  # default to 1.0 if no conf
+            if conf_key not in det:
+                raise ValueError(f"Missing raw detection confidence: {conf_key}")
+            conf = det[conf_key]
             effective_conf = conf if conf >= fsm.conf_threshold else 0.0
         else:
             effective_conf = 0.0

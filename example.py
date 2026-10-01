@@ -16,17 +16,19 @@ def main() -> None:
         (np.array([[100.0, 80.0, 180.0, 160.0]]), np.array([0.82])),
         (np.array([[104.0, 82.0, 184.0, 162.0]]), np.array([0.86])),
         (np.array([[108.0, 84.0, 188.0, 164.0]]), np.array([0.88])),
+        (np.empty((0, 4)), np.empty(0)),
     ]
 
     for boxes, confidences in sequence:
         smooth_boxes, smooth_conf = smoother.smooth_boxes_adaptive(
             boxes, confidences, class_ids, track_ids
         )
-        effective_conf = float(np.max(confidences))
+        effective_conf = float(np.max(confidences)) if confidences.size else 0.0
         trigger, state = fsm.process_frame(effective_conf)
+        box_text = smooth_boxes[0].round(2).tolist() if len(smooth_boxes) else None
+        conf_text = f"{float(smooth_conf[0]):.3f}" if len(smooth_conf) else None
         print(
-            f"box={smooth_boxes[0].round(2).tolist()} "
-            f"confidence={float(smooth_conf[0]):.3f} "
+            f"box={box_text} confidence={conf_text} "
             f"trigger={trigger} state={state}"
         )
 

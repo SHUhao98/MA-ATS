@@ -55,10 +55,10 @@ class TemporalSmoother:
         if track_ids is None:
             track_ids = np.arange(len(boxes))
 
-        smoothed_boxes = np.asarray(boxes).copy()
-        smoothed_conf = np.asarray(confidences).copy()
+        smoothed_boxes = np.asarray(boxes, dtype=float).copy()
+        smoothed_conf = np.asarray(confidences, dtype=float).copy()
         for i, (box, conf, cls_id, track_id) in enumerate(
-            zip(boxes, confidences, class_ids, track_ids)
+            zip(smoothed_boxes, smoothed_conf, class_ids, track_ids)
         ):
             if conf < self.min_confidence:
                 continue
@@ -91,10 +91,10 @@ class TemporalSmoother:
         if track_ids is None:
             track_ids = np.arange(len(boxes))
 
-        smoothed_boxes = np.asarray(boxes).copy()
-        smoothed_conf = np.asarray(confidences).copy()
+        smoothed_boxes = np.asarray(boxes, dtype=float).copy()
+        smoothed_conf = np.asarray(confidences, dtype=float).copy()
         for i, (box, conf, cls_id, track_id) in enumerate(
-            zip(boxes, confidences, class_ids, track_ids)
+            zip(smoothed_boxes, smoothed_conf, class_ids, track_ids)
         ):
             if conf < self.min_confidence:
                 continue
